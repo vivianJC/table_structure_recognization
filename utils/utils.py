@@ -2,7 +2,9 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import cv2
 import os
+import random
 from libtiff import TIFF
+from .data import readname
 
 def str2point(point):
     rows = len(point)
@@ -198,3 +200,30 @@ def preprocess(img_path, xml_path):
         
         
     return img_table, fm_table
+
+def write_filename(file_path, image_name):
+    file = open(file_path,'a')
+    for i in range(len(image_name)):
+        s = str(image_name[i]).replace('[','').replace(']','')
+        s = s.replace("'",'').replace(',','') +'\n'
+        file.write(s)
+    file.close()
+
+
+def split_train_val(dir_path, filename, val_percent=0.05):
+    dataset = readname(os.path.join(dir_path,filename))
+    length = len(dataset)
+    n = int(length * val_percent)
+    random.shuffle(dataset)
+    
+    train_path = os.path.join(dir_path,'train.txt')
+    test_path = os.path.join(dir_path, 'test.txt')
+    
+    write_filename(train_path, dataset[:-n])
+    write_filename(test_path, dataset[-n:])
+    
+def read_train_val(dir_path):
+    train_img = readname(os.path.join(dir_path,'train.txt'))
+    test_img = readname(os.path.join(dir_path,'test.txt'))
+    
+    return {'train': train_img, 'val':test_img}
